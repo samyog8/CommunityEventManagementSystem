@@ -1,0 +1,10 @@
+bin/
+obj/
+.git/
+.gitignore
+*.md
+attached_assets/
+.replit
+main.py
+pyproject.toml
+uv.lock
