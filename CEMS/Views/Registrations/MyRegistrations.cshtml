@@ -1,0 +1,109 @@
+@model MyRegistrationsViewModel
+@{
+    ViewData["Title"] = "My Registrations";
+}
+
+<div class="container my-4">
+    <h1 class="mb-4"><i class="bi bi-list-check me-2"></i>My Registrations</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post" asp-action="MyRegistrations">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        <label class="form-label">Enter your email to view your registrations:</label>
+                        <input type="email" name="Email" value="@Model.Email" class="form-control" placeholder="your@email.com" required>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-2"></i>Find My Registrations
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    @if (!string.IsNullOrEmpty(Model.Email))
+    {
+        @if (Model.Participant != null)
+        {
+            <div class="alert alert-info mb-4">
+                <strong>Welcome, @Model.Participant.FullName!</strong>
+                <br>Email: @Model.Participant.Email
+            </div>
+        }
+        
+        @if (Model.Registrations.Any())
+        {
+            <div class="row g-4">
+                @foreach (var reg in Model.Registrations)
+                {
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">@reg.Event.Name</h5>
+                                    @{
+                                        var badgeClass = reg.Status switch
+                                        {
+                                            RegistrationStatus.Confirmed => "bg-success",
+                                            RegistrationStatus.Pending => "bg-warning text-dark",
+                                            RegistrationStatus.Cancelled => "bg-secondary",
+                                            RegistrationStatus.Attended => "bg-info",
+                                            RegistrationStatus.Rejected => "bg-danger",
+                                            _ => "bg-secondary"
+                                        };
+                                        var statusText = reg.Status switch
+                                        {
+                                            RegistrationStatus.Pending => "Pending Approval",
+                                            _ => reg.Status.ToString()
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@statusText</span>
+                                </div>
+                                <p class="text-muted mb-1">
+                                    <i class="bi bi-calendar me-1"></i>@reg.Event.Date.ToString("ddd, d MMM yyyy")
+                                </p>
+                                <p class="text-muted mb-1">
+                                    <i class="bi bi-clock me-1"></i>@reg.Event.StartTime.ToString(@"hh\:mm") - @reg.Event.EndTime.ToString(@"hh\:mm")
+                                </p>
+                                @if (reg.Event.Venue != null)
+                                {
+                                    <p class="text-muted mb-2">
+                                        <i class="bi bi-geo-alt me-1"></i>@reg.Event.Venue.Name
+                                    </p>
+                                }
+                                <p class="small text-muted">
+                                    Registered on: @reg.RegistrationDate.ToString("d MMM yyyy")
+                                </p>
+                            </div>
+                            <div class="card-footer bg-white border-0">
+                                <div class="d-flex gap-2">
+                                    <a asp-controller="Events" asp-action="Details" asp-route-id="@reg.EventId" class="btn btn-outline-primary flex-grow-1">
+                                        View Event
+                                    </a>
+                                    @if (reg.Status != RegistrationStatus.Cancelled && reg.Event.Date >= DateTime.UtcNow.Date)
+                                    {
+                                        <form asp-action="Cancel" asp-route-id="@reg.Id" method="post" class="flex-grow-1">
+                                            <input type="hidden" name="returnEmail" value="@Model.Email" />
+                                            <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Are you sure you want to cancel this registration?')">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>No registrations found for this email address.
+            </div>
+        }
+    }
+</div>

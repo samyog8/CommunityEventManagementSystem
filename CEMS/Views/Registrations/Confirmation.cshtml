@@ -1,0 +1,58 @@
+@model Registration
+@{
+    ViewData["Title"] = "Registration Submitted";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card text-center fade-in">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-clock-fill text-warning" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="card-title mb-3">Registration Submitted!</h2>
+                    <p class="text-muted mb-2">Your registration is pending approval.</p>
+                    <p class="text-muted mb-4 small">An administrator will review your request and approve or reject it.</p>
+                    
+                    <div class="bg-light rounded p-4 mb-4">
+                        <div class="d-flex justify-content-center mb-3">
+                            <span class="badge bg-warning text-dark px-3 py-2">
+                                <i class="bi bi-hourglass-split me-1"></i>Pending Approval
+                            </span>
+                        </div>
+                        <h4>@Model.Event.Name</h4>
+                        <p class="mb-1"><i class="bi bi-calendar me-2 text-primary"></i>@Model.Event.Date.ToString("dddd, d MMMM yyyy")</p>
+                        <p class="mb-1"><i class="bi bi-clock me-2 text-primary"></i>@Model.Event.StartTime.ToString(@"hh\:mm") - @Model.Event.EndTime.ToString(@"hh\:mm")</p>
+                        @if (Model.Event.Venue != null)
+                        {
+                            <p class="mb-0"><i class="bi bi-geo-alt me-2 text-primary"></i>@Model.Event.Venue.Name</p>
+                        }
+                    </div>
+                    
+                    <p class="mb-1"><strong>Registered as:</strong> @Model.Participant.FullName</p>
+                    <p class="text-muted mb-4">@Model.Participant.Email</p>
+                    
+                    <div class="alert alert-info text-start mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>What happens next?</strong>
+                        <ul class="mb-0 mt-2 small">
+                            <li>Your registration will be reviewed by an administrator</li>
+                            <li>Check your registration status in "My Registrations"</li>
+                            <li>Once approved, your status will change to "Confirmed"</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Registrations" asp-action="MyRegistrations" class="btn btn-primary">
+                            <i class="bi bi-list-check me-2"></i>View My Registrations
+                        </a>
+                        <a asp-controller="Events" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-calendar-event me-2"></i>Browse More Events
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

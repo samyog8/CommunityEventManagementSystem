@@ -1,0 +1,137 @@
+@model Event
+@{
+    ViewData["Title"] = $"Registrations - {Model.Name}";
+}
+
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Events">Events</a></li>
+            <li class="breadcrumb-item active">@Model.Name - Registrations</li>
+        </ol>
+    </nav>
+    
+    <h1 class="mb-4"><i class="bi bi-people me-2"></i>@Model.Name - Registrations</h1>
+    
+    <div class="row mb-4 g-3">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon primary" style="width: 40px; height: 40px; font-size: 1rem;">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-number" style="font-size: 1.5rem;">@Model.Registrations.Count(r => r.Status != RegistrationStatus.Cancelled && r.Status != RegistrationStatus.Rejected)</div>
+                <p class="stat-label">Total / @Model.MaxCapacity</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon accent" style="width: 40px; height: 40px; font-size: 1rem;">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="stat-number" style="font-size: 1.5rem;">@Model.Registrations.Count(r => r.Status == RegistrationStatus.Pending)</div>
+                <p class="stat-label">Pending</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon secondary" style="width: 40px; height: 40px; font-size: 1rem;">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-number" style="font-size: 1.5rem;">@Model.Registrations.Count(r => r.Status == RegistrationStatus.Confirmed)</div>
+                <p class="stat-label">Confirmed</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon primary" style="width: 40px; height: 40px; font-size: 1rem;">
+                    <i class="bi bi-person-check"></i>
+                </div>
+                <div class="stat-number" style="font-size: 1.5rem;">@Model.Registrations.Count(r => r.Status == RegistrationStatus.Attended)</div>
+                <p class="stat-label">Attended</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Participant</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Registration Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reg in Model.Registrations.OrderBy(r => r.RegistrationDate))
+                    {
+                        <tr>
+                            <td><strong>@reg.Participant.FullName</strong></td>
+                            <td>@reg.Participant.Email</td>
+                            <td>@(reg.Participant.PhoneNumber ?? "-")</td>
+                            <td>@reg.RegistrationDate.ToString("d MMM yyyy HH:mm")</td>
+                            <td>
+                                @{
+                                    var badgeClass = reg.Status switch
+                                    {
+                                        RegistrationStatus.Confirmed => "bg-success",
+                                        RegistrationStatus.Pending => "bg-warning text-dark",
+                                        RegistrationStatus.Cancelled => "bg-secondary",
+                                        RegistrationStatus.Attended => "bg-info",
+                                        RegistrationStatus.Rejected => "bg-danger",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @badgeClass">@reg.Status</span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    @if (reg.Status == RegistrationStatus.Pending)
+                                    {
+                                        <form asp-action="ConfirmRegistration" asp-route-id="@reg.Id" asp-route-eventId="@Model.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-success" title="Approve">
+                                                <i class="bi bi-check"></i>
+                                            </button>
+                                        </form>
+                                        <form asp-action="RejectRegistration" asp-route-id="@reg.Id" asp-route-eventId="@Model.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger" title="Reject" onclick="return confirm('Reject this registration?')">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (reg.Status == RegistrationStatus.Confirmed)
+                                    {
+                                        <form asp-action="MarkAttended" asp-route-id="@reg.Id" asp-route-eventId="@Model.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-info" title="Mark Attended">
+                                                <i class="bi bi-person-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (reg.Status != RegistrationStatus.Cancelled)
+                                    {
+                                        <form asp-action="CancelRegistration" asp-route-id="@reg.Id" asp-route-eventId="@Model.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger" title="Cancel" onclick="return confirm('Cancel this registration?')">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a asp-action="Events" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Events
+        </a>
+    </div>
+</div>
